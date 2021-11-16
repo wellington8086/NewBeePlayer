@@ -1,0 +1,13 @@
+diff --git a/node_modules/right-now/browser.js b/node_modules/right-now/browser.js
+index 245e58d..21faf19 100644
+--- a/node_modules/right-now/browser.js
++++ b/node_modules/right-now/browser.js
+@@ -1,6 +1,6 @@
+ module.exports =
+-  global.performance &&
+-  global.performance.now ? function now() {
++  window.performance &&
++  window.performance.now ? function now() {
+     return performance.now()
+   } : Date.now || function now() {
+     return +new Date

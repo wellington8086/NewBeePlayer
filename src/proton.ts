@@ -15,32 +15,11 @@ export function startProtonLoop(canvas: HTMLCanvasElement, aspect = canvas.width
   renderer.setSize(canvas.width, canvas.height)
   document.body.appendChild(renderer.domElement)
 
-  const controls = new TrackballControls(camera, canvas)
-  controls.rotateSpeed = 1.0
-  controls.zoomSpeed = 1.2
-  controls.panSpeed = 0.8
-  controls.noZoom = false
-  controls.noPan = false
-  controls.staticMoving = true
-  controls.dynamicDampingFactor = 0.3
+  addControls(camera, canvas)
 
-  const ambientLight = new THREE.AmbientLight(0x101010)
-  scene.add(ambientLight)
+  addLights(scene)
 
-  const pointLight = new THREE.PointLight(0xffffff, 2, 1000, 1)
-  pointLight.position.set(0, 200, 200)
-  scene.add(pointLight)
-
-  // const geometry = new THREE.BufferGeometry()
-  // const vertices = []
-  // for (let i = 0; i < 10000; i++) {
-  //   const vertex = new THREE.Vector3()
-  //   vertex.x = THREE.MathUtils.randFloatSpread(2000)
-  //   vertex.y = THREE.MathUtils.randFloatSpread(2000)
-  //   vertex.z = THREE.MathUtils.randFloatSpread(2000)
-  //   vertices.push(vertex)
-  // }
-  // geometry.setFromPoints(vertices)
+  addStars(scene)
 
   const proton = new Proton()
 
@@ -88,6 +67,44 @@ export function startProtonLoop(canvas: HTMLCanvasElement, aspect = canvas.width
   }
 
   animate()
+}
+
+function addControls(camera: THREE.Camera, canvas: HTMLCanvasElement) {
+  const controls = new TrackballControls(camera, canvas)
+  controls.rotateSpeed = 1.0
+  controls.zoomSpeed = 1.2
+  controls.panSpeed = 0.8
+  controls.noZoom = false
+  controls.noPan = false
+  controls.staticMoving = true
+  controls.dynamicDampingFactor = 0.3
+}
+
+function addLights(scene: THREE.Scene) {
+  const ambientLight = new THREE.AmbientLight(0x101010)
+  scene.add(ambientLight)
+
+  const pointLight = new THREE.PointLight(0xffffff, 2, 1000, 1)
+  pointLight.position.set(0, 200, 200)
+  scene.add(pointLight)
+}
+
+function addStars(scene: THREE.Scene) {
+  const geometry = new THREE.BufferGeometry()
+  const vertices = []
+  for (let i = 0; i < 10000; i++) {
+    const vertex = new THREE.Vector3()
+    vertex.x = THREE.MathUtils.randFloatSpread(2000)
+    vertex.y = THREE.MathUtils.randFloatSpread(2000)
+    vertex.z = THREE.MathUtils.randFloatSpread(2000)
+    vertices.push(vertex)
+  }
+  geometry.setFromPoints(vertices)
+
+  const particles = new THREE.Points(geometry, new THREE.PointsMaterial({
+    color: 0x888888
+  }))
+  scene.add(particles)
 }
 
 function createSprite() {

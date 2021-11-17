@@ -4,7 +4,7 @@ import Alea from 'alea'
 import { createSpring } from 'spring-animator'
 
 const settings = {
-  text: 'audiofabric',
+  text: 'NewBeePlayer',
   particles: 600,
   dampening: 0.35, // 0.17
   stiffness: 0.85, // 0.9
@@ -32,14 +32,14 @@ let rand, points, pixelPicker, rAFToken, start, isFading
 
 export default function createTitleCard() {
   return {
-    resize: function(ev) {
+    resize: function (ev) {
       if (isFading) return
       start = Date.now()
       resize(ev)
       setup()
       loop()
     },
-    show: function() {
+    show: function () {
       start = Date.now()
       setTimeout(() => {
         css(instructions, { opacity: 1 })

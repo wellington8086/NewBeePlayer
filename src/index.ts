@@ -57,11 +57,7 @@ const renderBloom = createRenderBloom(regl, canvas)
 const renderBlur = createRenderBlur(regl)
 
 const tracks = [
-  { title: '715 - CRΣΣKS', artist: 'Bon Iver', path: '/audio/715-creeks.mp3' },
-  { title: 'Another New World', artist: 'Punch Brothers', path: '/audio/another-new-world.mp3' },
-  { title: 'The Wilder Sun', artist: 'Jon Hopkins', path: '/audio/the-wilder-sun.mp3' },
-  { title: 'Lost It To Trying', artist: 'Son Lux', path: '/audio/lost-it-to-trying.mp3' },
-  { title: 'Adagio for Strings', artist: 'Samuel Barber', path: '/audio/adagio-for-strings.mp3' }
+  { title: 'Rushes', artist: 'Frank Ocean', path: '/audio/Frank Ocean - Rushes.mp3' },
 ]
 
 const audio = createPlayer(tracks[0].path)

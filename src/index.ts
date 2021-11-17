@@ -16,12 +16,18 @@ import createAudioControls from './audio-controls'
 import createRenderBloom from './render-bloom'
 import createRenderBlur from './render-blur'
 import createRenderGrid from './render-grid'
+import { startProtonLoop } from './proton'
 
 const titleCard = createTitleCard()
 const canvas = document.querySelector<HTMLCanvasElement>('canvas.viz')
+const protonCanvas = document.querySelector<HTMLCanvasElement>('canvas.proton')
+
 const resize = fit(canvas)
+const resizeProton = fit(protonCanvas)
+
 window.addEventListener('resize', (ev) => {
   resize(ev)
+  resizeProton(ev)
   if (hasSetUp) setup()
   titleCard.resize(ev)
 }, false)
@@ -97,6 +103,8 @@ audio.on('load', function() {
       audio.play()
       camera.start()
       startLoop()
+
+      startProtonLoop(protonCanvas)
     })
 })
 

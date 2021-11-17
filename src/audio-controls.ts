@@ -48,6 +48,9 @@ export default function createAudioControls(audio, tracks) {
     const { left } = seekerEl.getBoundingClientRect()
     const t = (e.clientX - left) / width
     audio.currentTime = t * audio.duration
+    if (audio.paused) {
+      audio.play()
+    }
   })
 
   window.addEventListener('keypress', (e) => {

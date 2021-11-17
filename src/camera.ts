@@ -34,7 +34,7 @@ export default function createRoamingCamera(canvas: HTMLCanvasElement, center: O
     // of the camera is an important part of the visualization
     // canvas.addEventListener('mousedown', stopRoaming)
     // window.addEventListener('wheel', stopRoaming)
-    isRoaming = true
+    // isRoaming = true
   }
 
   function tick() {

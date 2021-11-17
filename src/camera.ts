@@ -1,7 +1,7 @@
 import createCamera, { Options } from '3d-view-controls'
 
 export default function createRoamingCamera(canvas: HTMLCanvasElement, center: Options['center'], eye: Options['eye']) {
-  let isRoaming = false
+  const isRoaming = false
   // let timeout
 
   const camera = createCamera(canvas, {
@@ -36,6 +36,8 @@ export default function createRoamingCamera(canvas: HTMLCanvasElement, center: O
     // window.addEventListener('wheel', stopRoaming)
     // isRoaming = true
   }
+
+  camera.distance = 1.3
 
   function tick() {
     camera.tick()

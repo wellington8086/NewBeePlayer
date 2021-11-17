@@ -16,7 +16,8 @@ import createAudioControls from './audio-controls'
 import createRenderBloom from './render-bloom'
 import createRenderBlur from './render-blur'
 import createRenderGrid from './render-grid'
-import { startProtonLoop } from './proton'
+import { ProtonLoop } from './proton'
+import { color255, color1 } from './utils'
 
 const titleCard = createTitleCard()
 const canvas = document.querySelector<HTMLCanvasElement>('canvas.viz')
@@ -25,13 +26,16 @@ const protonCanvas = document.querySelector<HTMLCanvasElement>('canvas.proton')
 const resize = fit(canvas)
 const resizeProton = fit(protonCanvas)
 
+const protonLoop = new ProtonLoop(protonCanvas)
+
 window.addEventListener('resize', (ev) => {
   resize(ev)
   resizeProton(ev)
+  protonLoop.resize()
   if (hasSetUp) setup()
   titleCard.resize(ev)
 }, false)
-const camera = createCamera(canvas, [2.5, 2.5, 2.5], [0, 0, 0])
+const camera = createCamera(canvas, [2.5, 2.5, 1], [0, 0, 0])
 const regl = createRegl(canvas)
 
 let analyser: Analyser, delaunay, points, positions, positionsBuffer, renderFrequencies,
@@ -58,6 +62,7 @@ const renderBlur = createRenderBlur(regl)
 
 const tracks = [
   { title: 'Rushes', artist: 'Frank Ocean', path: '/audio/Frank Ocean - Rushes.mp3' },
+  { title: '715 - CRΣΣKS', artist: 'Bon Iver', path: '/audio/715-creeks.mp3' }
 ]
 
 const audio = createPlayer(tracks[0].path)
@@ -100,7 +105,7 @@ audio.on('load', function() {
       camera.start()
       startLoop()
 
-      startProtonLoop(protonCanvas)
+      protonLoop.animate()
     })
 })
 
@@ -108,31 +113,35 @@ const settings = {
   seed: 0,
 
   points: 2500,
-  dampening: 0.7,
-  stiffness: 0.55,
+  dampening: 1,
+  stiffness: 0.71,
   freqPow: 1.7,
-  connectedNeighbors: 4,
+  connectedNeighbors: 5,
   neighborWeight: 0.99,
   connectedBinsStride: 1,
   blurAngle: 0.25,
   blurMag: 7,
 
-  blurRadius: 3,
-  blurWeight: 0.8,
-  originalWeight: 1.2,
+  blurRadius: 18,
+  blurWeight: 1.85,
+  originalWeight: 2,
 
-  gridLines: 180,
+  gridLines: 300,
   linesDampening: 0.02,
   linesStiffness: 0.9,
-  linesAnimationOffset: 12,
-  gridMaxHeight: 0.28,
+  linesAnimationOffset: 57,
+  gridMaxHeight: 0.8,
 
   motionBlur: true,
-  motionBlurAmount: 0.45
+  motionBlurAmount: 0.45,
+
+  background: color255([0.18, 0.18, 0.18, 1])
 }
 
 const gui = new GUI()
-gui.closed = true
+if (import.meta.env.PROD) {
+  gui.closed = true
+}
 css(gui.domElement.parentElement, {
   zIndex: 11,
   opacity: 0
@@ -150,8 +159,13 @@ const gridGUI = gui.addFolder('grid')
 gridGUI.add(settings, 'gridLines', 10, 300).step(1).onChange(setup)
 gridGUI.add(settings, 'linesAnimationOffset', 0, 100).step(1)
 gridGUI.add(settings, 'gridMaxHeight', 0.01, 0.8).step(0.01)
-// gui.add(settings, 'motionBlur')
-// gui.add(settings, 'motionBlurAmount', 0.01, 1).step(0.01)
+gui.add(settings, 'motionBlur')
+gui.add(settings, 'motionBlurAmount', 0.01, 1).step(0.01)
+
+const styleGUI = gui.addFolder('style')
+styleGUI.addColor(settings, 'background')
+
+protonLoop.setupGUI(styleGUI)
 
 let hasSetUp = false
 function setup() {
@@ -345,11 +359,12 @@ function startLoop() {
       })
     })
     renderToBlurredFBO(() => {
+      const rgba = color1(settings.background)
       if (settings.motionBlur) {
-        renderColoredQuad({ color: [0.18, 0.18, 0.18, settings.motionBlurAmount] })
+        renderColoredQuad({ color: [...rgba.slice(0, 3), settings.motionBlurAmount] })
       } else {
         regl.clear({
-          color: [0.18, 0.18, 0.18, 1],
+          color: rgba,
           depth: 1
         })
       }

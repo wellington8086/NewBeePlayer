@@ -16,23 +16,23 @@ import createAudioControls from './audio-controls'
 import createRenderBloom from './render-bloom'
 import createRenderBlur from './render-blur'
 import createRenderGrid from './render-grid'
-import { ProtonLoop } from './proton'
+import { Particles } from './particles'
 import { color255, color1, tracks } from './utils'
 import mouseChange from 'mouse-change'
 
 const titleCard = createTitleCard()
 const canvas = document.querySelector<HTMLCanvasElement>('canvas.viz')
-const protonCanvas = document.querySelector<HTMLCanvasElement>('canvas.proton')
+const particlesCanvas = document.querySelector<HTMLCanvasElement>('canvas.particles')
 
 const resize = fit(canvas)
-const resizeProton = fit(protonCanvas)
+const resizeProton = fit(particlesCanvas)
 
-const protonLoop = new ProtonLoop(protonCanvas)
+const particles = new Particles(particlesCanvas)
 
 window.addEventListener('resize', (ev) => {
   resize(ev)
   resizeProton(ev)
-  protonLoop.resize()
+  particles.resize()
   if (hasSetUp) setup()
   titleCard.resize(ev)
 }, false)
@@ -102,10 +102,10 @@ audio.on('load', function () {
       camera.start()
       startLoop()
 
-      protonLoop.animate()
+      particles.animate()
       mouseChange(canvas, (buttons, x, y) => {
         if (buttons === 0) {
-          protonLoop.move(x, y)
+          particles.move(x, y)
         }
       })
     })
@@ -167,7 +167,7 @@ gui.add(settings, 'motionBlurAmount', 0.01, 1).step(0.01)
 const styleGUI = gui.addFolder('style')
 styleGUI.addColor(settings, 'background')
 
-protonLoop.setupGUI(styleGUI)
+particles.setupGUI(styleGUI)
 
 let hasSetUp = false
 function setup() {

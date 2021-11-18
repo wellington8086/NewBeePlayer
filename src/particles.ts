@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js'
 import { GUI } from 'dat-gui'
 
-export class ProtonLoop {
+export class Particles {
   private R = 70
   private running = true
   private ctha = 0

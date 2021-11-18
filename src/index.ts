@@ -17,7 +17,7 @@ import createRenderBloom from './render-bloom'
 import createRenderBlur from './render-blur'
 import createRenderGrid from './render-grid'
 import { ProtonLoop } from './proton'
-import { color255, color1 } from './utils'
+import { color255, color1, tracks } from './utils'
 
 const titleCard = createTitleCard()
 const canvas = document.querySelector<HTMLCanvasElement>('canvas.viz')

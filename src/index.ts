@@ -135,7 +135,7 @@ const settings = {
   motionBlur: true,
   motionBlurAmount: 0.45,
 
-  background: color255([0.18, 0.18, 0.18, 1])
+  background: color255([0, 0, 0, 1])
 }
 
 const gui = new GUI()

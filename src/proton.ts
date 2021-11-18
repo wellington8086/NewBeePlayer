@@ -15,6 +15,8 @@ export class ProtonLoop {
   private emitters = []
   private canvas: HTMLCanvasElement
   private state = {}
+  private dx = 0
+  private dy = 0
 
   constructor(canvas: HTMLCanvasElement, aspect = canvas.width / canvas.height) {
     this.canvas = canvas
@@ -82,6 +84,11 @@ export class ProtonLoop {
         this.#setEmitterColor(emitter, 'b', color)
       })
     })
+  }
+
+  move(x: number, y: number) {
+    this.dx = x - this.canvas.width / 2
+    this.dy = this.canvas.height / 2 - y
   }
 
   #getEmitterColor(emitter): { a: string, b: string } {

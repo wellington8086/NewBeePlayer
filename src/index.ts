@@ -18,6 +18,7 @@ import createRenderBlur from './render-blur'
 import createRenderGrid from './render-grid'
 import { ProtonLoop } from './proton'
 import { color255, color1, tracks } from './utils'
+import mouseChange from 'mouse-change'
 
 const titleCard = createTitleCard()
 const canvas = document.querySelector<HTMLCanvasElement>('canvas.viz')
@@ -35,6 +36,7 @@ window.addEventListener('resize', (ev) => {
   if (hasSetUp) setup()
   titleCard.resize(ev)
 }, false)
+
 const camera = createCamera(canvas, [2.5, 2.5, 1], [0, 0, 0])
 const regl = createRegl(canvas)
 
@@ -60,13 +62,8 @@ const renderToFreqMapFBO = regl({ framebuffer: freqMapFBO })
 const renderBloom = createRenderBloom(regl, canvas)
 const renderBlur = createRenderBlur(regl)
 
-const tracks = [
-  { title: 'Rushes', artist: 'Frank Ocean', path: '/audio/Frank Ocean - Rushes.mp3' },
-  { title: '715 - CRΣΣKS', artist: 'Bon Iver', path: '/audio/715-creeks.mp3' }
-]
-
 const audio = createPlayer(tracks[0].path)
-audio.on('load', function() {
+audio.on('load', function () {
   (window as any).audio = audio
   analyser = createAnalyser(audio.node, audio.context, { audible: true, stereo: false })
   const audioControls = createAudioControls(audio.element, tracks)
@@ -106,6 +103,11 @@ audio.on('load', function() {
       startLoop()
 
       protonLoop.animate()
+      mouseChange(canvas, (buttons, x, y) => {
+        if (buttons === 0) {
+          protonLoop.move(x, y)
+        }
+      })
     })
 })
 

@@ -2,6 +2,7 @@ import Proton from 'three.proton.js'
 import * as THREE from 'three'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js'
 import { GUI } from 'dat-gui'
+
 export class ProtonLoop {
   private R = 70
   private running = true
@@ -40,8 +41,8 @@ export class ProtonLoop {
     this.R = 70
 
     this.emitters.push(
-      this.#createEmitter(this.R, 0, '#4F1500', '#0029FF', this.camera, this.renderer),
-      this.#createEmitter(-this.R, 0, '#004CFE', '#6600FF', this.camera, this.renderer),
+      this.#createEmitter(this.R, 0, '#000000', '#5fb3ff', this.camera, this.renderer),
+      this.#createEmitter(-this.R, 0, '#000000', '#20c3f5', this.camera, this.renderer)
     )
 
     this.emitters.forEach(emitter => {
@@ -51,9 +52,9 @@ export class ProtonLoop {
     this.proton.addRender(new Proton.SpriteRender(this.scene))
   }
 
-  animate() {
+  animate = () => {
     if (this.running) {
-      requestAnimationFrame(() => this.animate())
+      requestAnimationFrame(this.animate)
     }
     this.#animateEmitter()
     this.#render()
@@ -106,14 +107,14 @@ export class ProtonLoop {
 
   #render() {
     this.proton.update()
-    this.renderer.render(this.scene, this.camera)
 
-    this.camera.lookAt(this.scene.position)
     this.ctha += 0.02
     this.camera.position.x = Math.sin(this.ctha) * 500
     this.camera.position.y = Math.sin(this.ctha) * 500
     this.camera.position.z = Math.cos(this.ctha) * 500
+    this.camera.lookAt(this.scene.position)
 
+    this.renderer.render(this.scene, this.camera)
     if (import.meta.env.DEV) {
       Proton.Debug.renderInfo(this.proton, 3)
     }
@@ -159,8 +160,13 @@ export class ProtonLoop {
     }
     geometry.setFromPoints(vertices)
 
+    const sprite = new THREE.TextureLoader().load('/disc.png')
+
     const particles = new THREE.Points(geometry, new THREE.PointsMaterial({
-      color: 0x888888
+      color: 0x888888,
+      map: sprite,
+      alphaTest: 0.5,
+      transparent: true
     }))
     scene.add(particles)
   }

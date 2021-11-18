@@ -1,7 +1,7 @@
 import Proton from 'three.proton.js'
 import * as THREE from 'three'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js'
-import { GUI } from 'dat-gui'
+import { GUI } from 'dat.gui'
 
 export class Particles {
   private R = 70

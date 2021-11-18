@@ -3,6 +3,8 @@ import css from 'dom-css'
 import Alea from 'alea'
 import { createSpring } from 'spring-animator'
 
+const STROKE_COLOR = '255, 255, 255'
+
 const settings = {
   text: 'NewBeePlayer',
   particles: 600,
@@ -32,14 +34,14 @@ let rand, points, pixelPicker, rAFToken, start, isFading
 
 export default function createTitleCard() {
   return {
-    resize: function (ev) {
+    resize: function(ev) {
       if (isFading) return
       start = Date.now()
       resize(ev)
       setup()
       loop()
     },
-    show: function () {
+    show: function() {
       start = Date.now()
       setTimeout(() => {
         css(instructions, { opacity: 1 })
@@ -176,7 +178,7 @@ export default function createTitleCard() {
         if (!p.isActive) return
         const radius = p.line.length ? settings.particleSize : 0
         const opacity = 0.2 * (radius < 10 ? radius / 10 : 1)
-        ctx.strokeStyle = `rgba(200, 200, 255, ${opacity})`
+        ctx.strokeStyle = `rgba(${STROKE_COLOR}, ${opacity})`
         ctx.beginPath()
         ctx.arc(p.x, p.y, radius, 0, Math.PI * 2)
         ctx.stroke()
@@ -184,7 +186,7 @@ export default function createTitleCard() {
     }
 
     ctx.beginPath()
-    ctx.strokeStyle = `rgba(200, 200, 255, ${settings.lineOpacity})`
+    ctx.strokeStyle = `rgba(${STROKE_COLOR}, ${settings.lineOpacity})`
     points.forEach((p) => {
       if (p.line.length > 1) {
         ctx.moveTo(p.line[0][0], p.line[0][1])

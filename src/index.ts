@@ -18,6 +18,7 @@ import createRenderGrid from './render-grid'
 import { Particles } from './particles'
 import { color1, tracks, blurPositions } from './utils'
 import { initGUI, settings } from './settings'
+import { Spatial } from './effects'
 
 const titleCard = createTitleCard()
 const canvas = document.querySelector<HTMLCanvasElement>('canvas.viz')
@@ -28,7 +29,7 @@ const resizeProton = fit(particlesCanvas)
 
 const particles = new Particles(particlesCanvas, settings)
 
-const { gui, styleGUI, audioGUI } = initGUI(setup)
+const { gui, styleGUI } = initGUI(setup)
 
 window.addEventListener('resize', (ev) => {
   resize(ev)
@@ -65,43 +66,10 @@ const renderBlur = createRenderBlur(regl)
 
 const audio = createPlayer(tracks[0].path)
 
-// eslint-disable-next-line no-undef
-const audioSet: PannerOptions = {
-  coneInnerAngle: 60,
-  coneOuterAngle: 90,
-  coneOuterGain: 0.5,
-  distanceModel: 'linear',
-  maxDistance: 36,
-  refDistance: 1,
-  rolloffFactor: 10,
-  orientationX: 0,
-  orientationY: 0,
-  orientationZ: -1
-}
+const spatial = new Spatial(audio, camera._camera)
 
 audio.on('load', function() {
   const audioCtx = audio.context
-
-  audioCtx.listener.positionZ.value = camera._camera.distance
-  audioCtx.listener.forwardZ.value = camera._camera.eye[2] * 5
-
-  const panner = new PannerNode(audioCtx, {
-    panningModel: 'HRTF',
-    positionZ: camera._camera.distance,
-    ...audioSet
-  })
-
-  const gainNode = audioCtx.createGain()
-  const pannerOptions = { pan: 0 }
-  const stereoPanner = new StereoPannerNode(audioCtx, pannerOptions)
-
-  gainNode.gain.value = 2
-
-  audio.mediaNode
-    .connect(gainNode)
-    .connect(stereoPanner)
-    .connect(panner)
-    .connect(audioCtx.destination)
 
   analyser = createAnalyser(audio.mediaNode, audioCtx, { audible: false, stereo: false })
   const audioControls = createAudioControls(audio.element, tracks)
@@ -109,12 +77,7 @@ audio.on('load', function() {
   function loop() {
     window.requestAnimationFrame(loop)
     audioControls.tick()
-    panner.positionZ.value = camera._camera.distance
-    panner.orientationZ.value = camera._camera.eye[2] * 5
-    panner.positionX.value = camera._camera.center[0] * 5
-    panner.positionY.value = camera._camera.center[1] * 5
-    panner.orientationX.value = camera._camera.eye[0] * 5
-    panner.orientationY.value = camera._camera.eye[1] * 5
+    spatial.tick()
   }
 
   analyser.analyser.fftSize = 1024 * 2

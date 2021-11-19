@@ -5,7 +5,9 @@ export default function createRoamingCamera(canvas: HTMLCanvasElement, center: O
   // let timeout
 
   const camera = createCamera(canvas, {
-    zoomSpeed: 4
+    zoomSpeed: 4,
+    zoomMin: 0.01,
+    zoomMax: 36
   })
 
   camera.lookAt(
@@ -64,11 +66,11 @@ export default function createRoamingCamera(canvas: HTMLCanvasElement, center: O
   //   isRoaming = false
   // }
 
-  (window as any).camera = camera
   return {
     tick,
     start,
     getMatrix,
-    getCenter
+    getCenter,
+    _camera: camera
   }
 }

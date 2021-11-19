@@ -29,7 +29,8 @@ declare module '3d-view-controls' {
     eye: Options['eye']
     up: Options['up']
     center: Options['center']
-    distance: number
+    distance: number,
+    _camera: Camera
   }
 
   export default function createOrbitControls(

@@ -36,11 +36,7 @@ export const settings = {
   motionBlurAmount: 0.45,
 
   // style
-  background: color255([0.18, 0.18, 0.18, 1]),
-
-  // audio,
-  audioPosX: 0,
-  audioPosY: 0
+  background: color255([0.18, 0.18, 0.18, 1])
 }
 
 export const initGUI = (setup: () => void) => {
@@ -79,10 +75,4 @@ export const initGUI = (setup: () => void) => {
 
   const styleGUI = gui.addFolder('style')
   styleGUI.addColor(settings, 'background')
-
-  const audioGUI = gui.addFolder('audio')
-  audioGUI.add(settings, 'audioPosX', -100, 100).step(0.01)
-  audioGUI.add(settings, 'audioPosY', -100, 100).step(0.01)
-
-  return { gui, styleGUI }
 }

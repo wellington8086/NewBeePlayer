@@ -7,7 +7,7 @@ import shuffle from 'lodash.shuffle'
 import Alea from 'alea'
 import { createSpring } from 'spring-animator'
 import Delaunator from 'delaunator'
-import createPlayer from 'web-audio-player'
+import createPlayer from './libs/web-audio-player'
 import createAnalyser, { Analyser } from 'web-audio-analyser'
 import createCamera from './camera'
 import createTitleCard from './title-card'
@@ -17,8 +17,8 @@ import createRenderBlur from './render-blur'
 import createRenderGrid from './render-grid'
 import { Particles } from './particles'
 import { color1, tracks, blurPositions } from './utils'
-import mouseChange from 'mouse-change'
 import { initGUI, settings } from './settings'
+
 const titleCard = createTitleCard()
 const canvas = document.querySelector<HTMLCanvasElement>('canvas.viz')
 const particlesCanvas = document.querySelector<HTMLCanvasElement>('canvas.particles')
@@ -28,7 +28,7 @@ const resizeProton = fit(particlesCanvas)
 
 const particles = new Particles(particlesCanvas, settings)
 
-const { gui, styleGUI } = initGUI(setup)
+const { gui, styleGUI, audioGUI } = initGUI(setup)
 
 window.addEventListener('resize', (ev) => {
   resize(ev)
@@ -69,37 +69,52 @@ const audio = createPlayer(tracks[0].path)
 const audioSet: PannerOptions = {
   coneInnerAngle: 60,
   coneOuterAngle: 90,
-  coneOuterGain: 0.3,
+  coneOuterGain: 0.5,
   distanceModel: 'linear',
-  maxDistance: 10000,
+  maxDistance: 36,
   refDistance: 1,
   rolloffFactor: 10,
   orientationX: 0,
   orientationY: 0,
-  orientationZ: -1.0
+  orientationZ: -1
 }
 
-const panner = new PannerNode(audio.context, {
-  panningModel: 'HRTF',
-  ...audioSet,
-  positionX: 1000,
-  positionY: settings.audioPosX
-})
-
-const pannerOptions = { pan: 0 }
-const stereoPanner = new StereoPannerNode(audio.context, pannerOptions)
-
 audio.on('load', function() {
-  (window as any).audio = audio
-  audio.context.createGain().connect(stereoPanner).connect(panner).connect(audio.context.destination)
+  const audioCtx = audio.context
 
-  analyser = createAnalyser(audio.node, audio.context, { audible: true, stereo: false })
+  audioCtx.listener.positionZ.value = camera._camera.distance
+  audioCtx.listener.forwardZ.value = camera._camera.eye[2] * 5
+
+  const panner = new PannerNode(audioCtx, {
+    panningModel: 'HRTF',
+    positionZ: camera._camera.distance,
+    ...audioSet
+  })
+
+  const gainNode = audioCtx.createGain()
+  const pannerOptions = { pan: 0 }
+  const stereoPanner = new StereoPannerNode(audioCtx, pannerOptions)
+
+  gainNode.gain.value = 2
+
+  audio.mediaNode
+    .connect(gainNode)
+    .connect(stereoPanner)
+    .connect(panner)
+    .connect(audioCtx.destination)
+
+  analyser = createAnalyser(audio.mediaNode, audioCtx, { audible: false, stereo: false })
   const audioControls = createAudioControls(audio.element, tracks)
 
   function loop() {
     window.requestAnimationFrame(loop)
     audioControls.tick()
-    panner.positionX.value = settings.audioPosX
+    panner.positionZ.value = camera._camera.distance
+    panner.orientationZ.value = camera._camera.eye[2] * 5
+    panner.positionX.value = camera._camera.center[0] * 5
+    panner.positionY.value = camera._camera.center[1] * 5
+    panner.orientationX.value = camera._camera.eye[0] * 5
+    panner.orientationY.value = camera._camera.eye[1] * 5
   }
 
   analyser.analyser.fftSize = 1024 * 2
@@ -129,13 +144,12 @@ audio.on('load', function() {
       audio.play()
       camera.start()
       startLoop()
-
       particles.animate()
-      mouseChange(canvas, (buttons, x, y) => {
-        if (buttons === 0) {
-          particles.move(x, y)
-        }
-      })
+      // mouseChange(canvas, (buttons, x, y) => {
+      //   if (buttons === 0) {
+      //     particles.move(x, y)
+      //   }
+      // })
     })
 })
 

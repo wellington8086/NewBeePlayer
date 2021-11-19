@@ -75,4 +75,6 @@ export const initGUI = (setup: () => void) => {
 
   const styleGUI = gui.addFolder('style')
   styleGUI.addColor(settings, 'background')
+
+  return { gui, styleGUI }
 }

@@ -3,7 +3,6 @@ import glsl from 'glslify'
 import perspective from 'gl-mat4/perspective'
 import css from 'dom-css'
 import fit from 'canvas-fit'
-import { GUI } from 'dat.gui'
 import shuffle from 'lodash.shuffle'
 import Alea from 'alea'
 import { createSpring } from 'spring-animator'
@@ -17,9 +16,9 @@ import createRenderBloom from './render-bloom'
 import createRenderBlur from './render-blur'
 import createRenderGrid from './render-grid'
 import { Particles } from './particles'
-import { color255, color1, tracks } from './utils'
+import { color1, tracks, blurPositions } from './utils'
 import mouseChange from 'mouse-change'
-
+import { initGUI, settings } from './settings'
 const titleCard = createTitleCard()
 const canvas = document.querySelector<HTMLCanvasElement>('canvas.viz')
 const particlesCanvas = document.querySelector<HTMLCanvasElement>('canvas.particles')
@@ -27,7 +26,9 @@ const particlesCanvas = document.querySelector<HTMLCanvasElement>('canvas.partic
 const resize = fit(canvas)
 const resizeProton = fit(particlesCanvas)
 
-const particles = new Particles(particlesCanvas)
+const particles = new Particles(particlesCanvas, settings)
+
+const { gui, styleGUI } = initGUI(setup)
 
 window.addEventListener('resize', (ev) => {
   resize(ev)
@@ -63,14 +64,41 @@ const renderBloom = createRenderBloom(regl, canvas)
 const renderBlur = createRenderBlur(regl)
 
 const audio = createPlayer(tracks[0].path)
-audio.on('load', function () {
+
+const audioSet: PannerOptions = {
+  coneInnerAngle: 60,
+  coneOuterAngle: 90,
+  coneOuterGain: 0.3,
+  distanceModel: 'linear',
+  maxDistance: 10000,
+  refDistance: 1,
+  rolloffFactor: 10,
+  orientationX: 0,
+  orientationY: 0,
+  orientationZ: -1.0
+}
+
+const panner = new PannerNode(audio.context, {
+  panningModel: 'HRTF',
+  ...audioSet,
+  positionX: 1000,
+  positionY: settings.audioPosX
+})
+
+const pannerOptions = { pan: 0 }
+const stereoPanner = new StereoPannerNode(audio.context, pannerOptions)
+
+audio.on('load', function() {
   (window as any).audio = audio
+  audio.context.createGain().connect(stereoPanner).connect(panner).connect(audio.context.destination)
+
   analyser = createAnalyser(audio.node, audio.context, { audible: true, stereo: false })
   const audioControls = createAudioControls(audio.element, tracks)
 
   function loop() {
     window.requestAnimationFrame(loop)
     audioControls.tick()
+    panner.positionX.value = settings.audioPosX
   }
 
   analyser.analyser.fftSize = 1024 * 2
@@ -85,7 +113,6 @@ audio.on('load', function () {
   // the music starts, which is jarring
   const renderLoop = startLoop()
   setTimeout(renderLoop.cancel.bind(renderLoop), 1000)
-
   titleCard.show()
     .then(() => new Promise(resolve => setTimeout(resolve, 1000)))
     .then(() => {
@@ -110,62 +137,6 @@ audio.on('load', function () {
       })
     })
 })
-
-const settings = {
-  seed: 0,
-
-  points: 2500,
-  dampening: 1,
-  stiffness: 0.71,
-  freqPow: 1.7,
-  connectedNeighbors: 5,
-  neighborWeight: 0.99,
-  connectedBinsStride: 1,
-  blurAngle: 0.25,
-  blurMag: 7,
-
-  blurRadius: 18,
-  blurWeight: 1.85,
-  originalWeight: 2,
-
-  gridLines: 300,
-  linesDampening: 0.02,
-  linesStiffness: 0.9,
-  linesAnimationOffset: 57,
-  gridMaxHeight: 0.8,
-
-  motionBlur: true,
-  motionBlurAmount: 0.45,
-
-  background: color255([0, 0, 0, 1])
-}
-
-const gui = new GUI()
-if (import.meta.env.PROD) {
-  gui.closed = true
-}
-css(gui.domElement.parentElement, {
-  zIndex: 11,
-  opacity: 0
-})
-const fabricGUI = gui.addFolder('fabric')
-fabricGUI.add(settings, 'dampening', 0.01, 1).step(0.01).onChange(setup)
-fabricGUI.add(settings, 'stiffness', 0.01, 1).step(0.01).onChange(setup)
-fabricGUI.add(settings, 'connectedNeighbors', 0, 7).step(1).onChange(setup)
-fabricGUI.add(settings, 'neighborWeight', 0.8, 1).step(0.01)
-const bloomGUI = gui.addFolder('bloom')
-bloomGUI.add(settings, 'blurRadius', 0, 20).step(1)
-bloomGUI.add(settings, 'blurWeight', 0, 2).step(0.01)
-bloomGUI.add(settings, 'originalWeight', 0, 2).step(0.01)
-const gridGUI = gui.addFolder('grid')
-gridGUI.add(settings, 'gridLines', 10, 300).step(1).onChange(setup)
-gridGUI.add(settings, 'linesAnimationOffset', 0, 100).step(1)
-gridGUI.add(settings, 'gridMaxHeight', 0.01, 0.8).step(0.01)
-gui.add(settings, 'motionBlur')
-gui.add(settings, 'motionBlurAmount', 0.01, 1).step(0.01)
-
-const styleGUI = gui.addFolder('style')
-styleGUI.addColor(settings, 'background')
 
 particles.setupGUI(styleGUI)
 
@@ -370,7 +341,10 @@ function startLoop() {
         renderGrid({
           frequencyVals: freqMapFBO,
           gridMaxHeight: settings.gridMaxHeight,
-          multiplier: 1
+          multiplier: 1,
+          colorOffset: settings.gridColorOffset,
+          basicOpacity: settings.gridBasicOpacity,
+          segments: settings.segments
         })
       })
     })

@@ -65,6 +65,7 @@ const renderBlur = createRenderBlur(regl)
 
 const audio = createPlayer(tracks[0].path)
 
+// eslint-disable-next-line no-undef
 const audioSet: PannerOptions = {
   coneInnerAngle: 60,
   coneOuterAngle: 90,

@@ -1,5 +1,6 @@
 import glsl from 'glslify'
 import type { Regl } from 'regl'
+import { blurPositions } from './utils'
 
 export default function createRenderBlur(regl: Regl) {
   return regl({
@@ -35,11 +36,7 @@ export default function createRenderBlur(regl: Regl) {
       direction: regl.prop('direction')
     },
     attributes: {
-      position: [
-        -1, -1,
-        -1, 4,
-        4, -1
-      ]
+      position: blurPositions
     },
     count: 3,
     primitive: 'triangles'

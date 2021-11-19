@@ -14,3 +14,10 @@ export const tracks = [
   { title: 'BadCat', artist: 'Skullbeatz', path: '/audio/376737_Skullbeatz___Bad_Cat_Maste.mp3' },
   { title: 'Rushes', artist: 'Frank Ocean', path: '/audio/Frank Ocean - Rushes.mp3' }
 ]
+
+export const blurPositions = [
+  -1, -1,
+  -1, 4,
+  4, -1,
+  5, 5
+]

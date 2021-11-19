@@ -1,5 +1,6 @@
 import glsl from 'glslify'
 import type { Regl, Framebuffer2D } from 'regl'
+import { blurPositions } from './utils'
 
 export type RenderProps = {
   iChannel0: Framebuffer2D,
@@ -73,11 +74,7 @@ export default function createRenderBloom(regl: Regl, canvas: HTMLCanvasElement)
       blurMag: regl.prop('blurMag')
     },
     attributes: {
-      position: [
-        -1, -1,
-        -1, 4,
-        4, -1
-      ]
+      position: blurPositions
     },
     count: 3,
     primitive: 'triangles'
@@ -135,11 +132,7 @@ export default function createRenderBloom(regl: Regl, canvas: HTMLCanvasElement)
       originalWeight: regl.prop('originalWeight')
     },
     attributes: {
-      position: [
-        -1, -1,
-        -1, 4,
-        4, -1
-      ]
+      position: blurPositions
     },
     count: 3,
     primitive: 'triangles'

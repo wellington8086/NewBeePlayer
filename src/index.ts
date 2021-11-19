@@ -332,11 +332,7 @@ const renderColoredQuad = regl({
     color: regl.prop('color')
   },
   attributes: {
-    position: [
-      -1, -1,
-      -1, 4,
-      4, -1
-    ]
+    position: blurPositions
   },
   count: 3,
   primitive: 'triangles'

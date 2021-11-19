@@ -37,8 +37,6 @@ export default function createRoamingCamera(canvas: HTMLCanvasElement, center: O
     // isRoaming = true
   }
 
-  camera.distance = 1.3
-
   function tick() {
     camera.tick()
     // very minor performance improvement by minimizing array creation in loop

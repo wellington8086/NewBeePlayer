@@ -11,6 +11,6 @@ export const color1 = (color: Vec4): Vec4 => {
 }
 
 export const tracks = [
-  { title: 'R u s h e s', artist: 'Frank Ocean', path: '/audio/FRANK OCEAN - R U S H E S.m4a' },
+  { title: 'BadCat', artist: 'Skullbeatz', path: '/audio/376737_Skullbeatz___Bad_Cat_Maste.mp3' },
   { title: 'Rushes', artist: 'Frank Ocean', path: '/audio/Frank Ocean - Rushes.mp3' }
 ]

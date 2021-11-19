@@ -38,7 +38,7 @@ export class Particles {
 
     this.#addStars(this.scene)
 
-    this.#addText()
+    // this.#addText()
 
     this.#addFollow()
   }

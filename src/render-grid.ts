@@ -1,4 +1,3 @@
-import glsl from 'glslify'
 import { createSpring } from 'spring-animator'
 import type { Regl } from 'regl'
 
@@ -40,8 +39,11 @@ export default function createRenderGrid(regl: Regl, settings) {
 
   const linesPositions = getLinesPositions([], lines)
   const linesBuffer = regl.buffer(linesPositions)
+
   const render = regl({
-    vert: glsl`
+    vert: `
+      precision lowp float;
+
       attribute vec2 position;
 
       varying vec4 fragColor;
@@ -52,18 +54,39 @@ export default function createRenderGrid(regl: Regl, settings) {
       uniform mat4 view;
       uniform float gridMaxHeight;
       uniform float multiplier;
+      uniform vec4 colorOffset;
+      uniform float basicOpacity;
+      uniform int segments;
+
+      #define PI 3.14
+      #define TWO_PI 6.28
+
+      float polygon(vec2 coord, int num) {
+        coord = coord;
+        
+        float a = atan(coord.x, coord.y) + PI;
+        float r = TWO_PI/float(num);
+          
+        float d = cos(floor(0.5+a/r)*r-a) * length(coord);
+      
+        return 1.0 - smoothstep(0.5, 1.0, d);
+      }
 
       void main() {
         vec2 lookup = (position + 1.0) / 2.0;
         float frequencyVal = texture2D(frequencyVals, lookup).x;
-        vec3 rgb = clamp(sin((vec3(frequencyVal) + vec3(0.1, 0.3, 0.5)) * 1.9), 0.0, 0.95);
-        float opacity = clamp(pow(frequencyVal * 1.5, 2.0), 0.0, 0.95) * multiplier;
-        fragColor = vec4(rgb, opacity);
-        gl_Position = projection * view * vec4(position.xy, frequencyVal * gridMaxHeight * multiplier, 1);
+        vec3 rgb = clamp(sin((vec3(frequencyVal) + vec3(colorOffset)) * 1.9), 0.0, 0.95);
+        float opacity = clamp(pow(frequencyVal * 1.5, 2.0), 0.0, 0.95) * multiplier + basicOpacity;
+        if (polygon(position, segments) > 0.0) {
+          fragColor = vec4(rgb, opacity);
+        } else {
+          fragColor = vec4(0.0);
+        }
+        gl_Position = (projection * view * vec4(position.xy, frequencyVal * gridMaxHeight * multiplier, 1));
       }
     `,
-    frag: glsl`
-      precision highp float;
+    frag: `
+      precision lowp float;
       varying vec4 fragColor;
       void main() {
         gl_FragColor = fragColor;
@@ -72,7 +95,10 @@ export default function createRenderGrid(regl: Regl, settings) {
     uniforms: {
       frequencyVals: regl.prop('frequencyVals'),
       gridMaxHeight: regl.prop('gridMaxHeight'),
-      multiplier: regl.prop('multiplier')
+      multiplier: regl.prop('multiplier'),
+      colorOffset: regl.prop('colorOffset'),
+      basicOpacity: regl.prop('basicOpacity'),
+      segments: regl.prop('segments')
     },
     blend: {
       enable: true,
@@ -131,12 +157,16 @@ export default function createRenderGrid(regl: Regl, settings) {
     }, 9500)
   }
 
-  return function({ frequencyVals, gridMaxHeight, multiplier }) {
+  return function({
+    frequencyVals, gridMaxHeight,
+    multiplier, colorOffset, basicOpacity,
+    segments
+  }) {
     getLinesPositions(linesPositions, lines)
     linesBuffer(linesPositions)
     for (const line of lines) {
       line.offset.tick()
     }
-    render({ frequencyVals, gridMaxHeight, multiplier })
+    render({ frequencyVals, gridMaxHeight, multiplier, colorOffset, basicOpacity, segments })
   }
 }

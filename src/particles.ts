@@ -197,7 +197,7 @@ export class Particles {
   #addFollow() {
     this.follow = new FollowEffect({
       camera: this.camera,
-      texture: '/public/dot.png',
+      texture: '/dot.png',
       renderer: this.renderer,
       scene: this.scene
     })

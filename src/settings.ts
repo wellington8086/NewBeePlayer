@@ -27,9 +27,9 @@ export const settings = {
   linesStiffness: 0.9,
   linesAnimationOffset: 57,
   gridMaxHeight: 0.8,
-  gridColorOffset: [45, 136, 233, 1],
+  gridColorOffset: [89, 159, 235, 1],
   gridBasicOpacity: 0.02,
-  segments: 12,
+  segments: 24,
 
   // particles
   motionBlur: true,

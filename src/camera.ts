@@ -16,6 +16,8 @@ export default function createRoamingCamera(canvas: HTMLCanvasElement, center: O
     [0.52, -0.11, 50]
   )
 
+  camera.distance = 1.8
+
   function getPositionFromRads(position, rads) {
     position[0] = Math.sin(rads) * 1.5
     position[1] = Math.cos(rads) * 2.7

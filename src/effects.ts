@@ -83,7 +83,7 @@ export class FollowEffect {
     emitter.addInitialize(new Proton.V(200, new Proton.Vector3D(0, 0, -1), 15))
 
     emitter.addBehaviour(new Proton.Alpha(0.8, 0))
-    emitter.addBehaviour(new Proton.Color('#4F1500', '#0029FF'))
+    emitter.addBehaviour(new Proton.Color('#61e3bc', '#0029FF'))
     emitter.addBehaviour(new Proton.Scale(1, 0.5))
     emitter.addBehaviour(
       new Proton.CrossZone(new Proton.ScreenZone(camera, renderer), 'dead')

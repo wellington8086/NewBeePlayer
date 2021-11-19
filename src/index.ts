@@ -27,7 +27,7 @@ const particlesCanvas = document.querySelector<HTMLCanvasElement>('canvas.partic
 const resize = fit(canvas)
 const resizeProton = fit(particlesCanvas)
 
-const particles = new Particles(particlesCanvas, settings)
+const particles = new Particles(particlesCanvas)
 
 const { gui, styleGUI } = initGUI(setup)
 

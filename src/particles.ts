@@ -1,22 +1,23 @@
-import Proton from 'three.proton.js'
 import * as THREE from 'three'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js'
 import { GUI } from 'dat.gui'
+import { TTFLoader } from 'three/examples/jsm/loaders/TTFLoader.js'
+import { Font } from 'three/examples/jsm/loaders/FontLoader.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import { FollowEffect } from './effects'
 
 export class Particles {
-  private R = 70
   private running = true
   private ctha = 0
-  private tha = 0
-  private proton: Proton
   private renderer: THREE.WebGLRenderer
   private camera: THREE.Camera
   private scene: THREE.Scene
   private emitters = []
   private canvas: HTMLCanvasElement
   private state = {}
-  private dx = 0
-  private dy = 0
+  private text = 'HELLO World'
+  private font: Font
+  private follow: FollowEffect
 
   constructor(canvas: HTMLCanvasElement, aspect = canvas.width / canvas.height) {
     this.canvas = canvas
@@ -30,7 +31,6 @@ export class Particles {
       alpha: true
     })
     this.renderer.setSize(canvas.width, canvas.height)
-    document.body.appendChild(this.renderer.domElement)
 
     this.#addControls(this.camera, canvas)
 
@@ -38,28 +38,17 @@ export class Particles {
 
     this.#addStars(this.scene)
 
-    this.proton = new Proton()
+    this.#addText()
 
-    this.R = 70
-
-    this.emitters.push(
-      this.#createEmitter(this.R, 0, '#000000', '#5fb3ff', this.camera, this.renderer),
-      this.#createEmitter(-this.R, 0, '#000000', '#20c3f5', this.camera, this.renderer)
-    )
-
-    this.emitters.forEach(emitter => {
-      this.proton.addEmitter(emitter)
-    })
-
-    this.proton.addRender(new Proton.SpriteRender(this.scene))
+    this.#addFollow()
   }
 
   animate = () => {
     if (this.running) {
       requestAnimationFrame(this.animate)
     }
-    this.#animateEmitter()
     this.#render()
+    this.follow.render()
   }
 
   resize() {
@@ -67,28 +56,24 @@ export class Particles {
   }
 
   setupGUI(gui: GUI) {
-    this.emitters.forEach((emitter, i) => {
-      const a = `emitter${i + 1}.a`
-      const b = `emitter${i + 1}.b`
-      const curColor = this.#getEmitterColor(emitter)
-      if (!this.state[a]) {
-        this.state[a] = curColor.a
-      }
-      if (!this.state[b]) {
-        this.state[b] = curColor.b
-      }
-      gui.addColor(this.state, a).onChange(color => {
-        this.#setEmitterColor(emitter, 'a', color)
-      })
-      gui.addColor(this.state, b).onChange(color => {
-        this.#setEmitterColor(emitter, 'b', color)
-      })
+    const a = 'emitter1'
+    const b = 'emitter2'
+    const curColor = this.#getEmitterColor(this.follow.emitter)
+    if (!this.state[a]) {
+      this.state[a] = curColor.a
+    }
+    if (!this.state[b]) {
+      this.state[b] = curColor.b
+    }
+    gui.addColor(this.state, a).onChange(color => {
+      this.#setEmitterColor(this.follow.emitter, 'a', color)
+    })
+    gui.addColor(this.state, b).onChange(color => {
+      this.#setEmitterColor(this.follow.emitter, 'b', color)
     })
   }
 
   move(x: number, y: number) {
-    this.dx = x - this.canvas.width / 2
-    this.dy = this.canvas.height / 2 - y
   }
 
   #getEmitterColor(emitter): { a: string, b: string } {
@@ -113,8 +98,6 @@ export class Particles {
   }
 
   #render() {
-    this.proton.update()
-
     this.ctha += 0.02
     this.camera.position.x = Math.sin(this.ctha) * 500
     this.camera.position.y = Math.sin(this.ctha) * 500
@@ -122,17 +105,6 @@ export class Particles {
     this.camera.lookAt(this.scene.position)
 
     this.renderer.render(this.scene, this.camera)
-    if (import.meta.env.DEV) {
-      Proton.Debug.renderInfo(this.proton, 3)
-    }
-  }
-
-  #animateEmitter() {
-    this.tha += 0.13
-    this.emitters.forEach((emitter, i) => {
-      emitter.p.x = this.R * Math.cos(this.tha + (i * Math.PI / 2))
-      emitter.p.y = this.R * Math.sin(this.tha + (i * Math.PI / 2)) - 300
-    })
   }
 
   #addControls(camera: THREE.Camera, canvas: HTMLCanvasElement) {
@@ -178,42 +150,56 @@ export class Particles {
     scene.add(particles)
   }
 
-  #createSprite() {
-    const map = new THREE.TextureLoader().load('/dot.png')
-    const material = new THREE.SpriteMaterial({
-      map: map,
-      color: 0xff0000,
-      blending: THREE.AdditiveBlending,
-      fog: true
+  #addText() {
+    const loader = new TTFLoader()
+    loader.load('/fonts/OpenSans-Regular.ttf', (json) => {
+      this.font = new Font(json)
+      this.#createText()
     })
-    return new THREE.Sprite(material)
   }
 
-  #createEmitter(x, y, color1, color2, camera, renderer) {
-    const emitter = new Proton.Emitter()
-    emitter.rate = new Proton.Rate(new Proton.Span(5, 7), new Proton.Span(0.01, 0.02))
-    emitter.addInitialize(new Proton.Mass(1))
-    emitter.addInitialize(new Proton.Life(2))
-    emitter.addInitialize(new Proton.Body(this.#createSprite()))
-    emitter.addInitialize(new Proton.Radius(40))
-    emitter.addInitialize(new Proton.V(200, new Proton.Vector3D(0, 0, -1), 0))
+  #createText() {
+    const height = 20
+    const size = 10
+    const hover = 30
+    const curveSegments = 4
+    const bevelThickness = 0.1
+    const bevelSize = 1.5
+    const textGeo = new TextGeometry(this.text, {
+      font: this.font,
+      size: size,
+      height: height,
+      curveSegments: curveSegments,
 
-    emitter.addBehaviour(new Proton.Alpha(1, 0))
-    emitter.addBehaviour(new Proton.Color(color1, color2))
-    emitter.addBehaviour(new Proton.Scale(1, 0.5))
-    emitter.addBehaviour(new Proton.CrossZone(new Proton.ScreenZone(camera, renderer), 'dead'))
+      bevelThickness: bevelThickness,
+      bevelSize: bevelSize,
+      bevelEnabled: true
+    })
 
-    emitter.addBehaviour(new Proton.Force(0, 0, -20))
-    emitter.addBehaviour(new Proton.Attraction({
-      x: 0,
-      y: 0,
-      z: 0
-    }, 5, 250))
+    textGeo.computeBoundingBox()
+    textGeo.computeVertexNormals()
 
-    emitter.p.x = x
-    emitter.p.y = y
-    emitter.emit()
+    const centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x)
 
-    return emitter
+    const material = new THREE.MeshPhongMaterial({ color: 0xffffff })
+    const textMesh1 = new THREE.Mesh(textGeo, material)
+
+    textMesh1.position.x = centerOffset
+    textMesh1.position.y = hover
+    textMesh1.position.z = 0
+
+    textMesh1.rotation.x = 0
+    textMesh1.rotation.y = Math.PI * 2
+
+    this.scene.add(textMesh1)
+  }
+
+  #addFollow() {
+    this.follow = new FollowEffect({
+      camera: this.camera,
+      texture: '/public/dot.png',
+      renderer: this.renderer,
+      scene: this.scene
+    })
   }
 }
